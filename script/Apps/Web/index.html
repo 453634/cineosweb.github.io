@@ -302,17 +302,17 @@ button:hover {
     function search(text) {
 
         /*
-         * NO GOOGLE.
+         * Brave Search blocks iframe embedding (X-Frame-Options),
+         * like most search engines, so it can never load inside
+         * Cine-OS no matter what we do here.
          *
-         * Searches use Brave Search, loaded inside the browser
-         * app itself so the user stays inside Cine-OS. If Brave
-         * Search ends up refusing to embed, watchForBlock() will
-         * catch it and show the fallback screen (with its own
-         * "open in new tab" link) instead of silently leaving.
+         * DuckDuckGo's HTML endpoint does not block embedding, so
+         * we use that instead to keep search results inside the
+         * browser app.
          */
 
         const url =
-            "https://search.brave.com/search?q=" +
+            "https://html.duckduckgo.com/html/?q=" +
             encodeURIComponent(text);
 
         openWebsite(url, true);
