@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Brave Browser</title>
 
 <style>
@@ -34,7 +35,6 @@ html, body {
     align-items: center;
     gap: 8px;
     padding: 8px;
-    color: white;
 }
 
 button {
@@ -85,11 +85,6 @@ button:hover {
     background: #fb542b;
     border-radius: 20px;
     width: 48px;
-    font-size: 16px;
-}
-
-.go:hover {
-    background: #e94720;
 }
 
 iframe {
@@ -109,10 +104,10 @@ iframe {
 
         <div class="brave-logo">B</div>
 
-        <button onclick="goBack()" title="Back">←</button>
-        <button onclick="goForward()" title="Forward">→</button>
-        <button onclick="reloadPage()" title="Reload">↻</button>
-        <button onclick="goHome()" title="Home">⌂</button>
+        <button onclick="goBack()">←</button>
+        <button onclick="goForward()">→</button>
+        <button onclick="reloadPage()">↻</button>
+        <button onclick="goHome()">⌂</button>
 
         <input
             id="address"
@@ -128,8 +123,7 @@ iframe {
 
     <iframe
         id="browserFrame"
-        src="https://example.com"
-        allowfullscreen>
+        src="https://example.com">
     </iframe>
 
 </div>
@@ -143,7 +137,7 @@ let historyList = ["https://example.com"];
 let historyIndex = 0;
 
 
-// Turn text into a URL or Google search
+// Convert what the user typed into a destination
 function getDestination(text) {
 
     text = text.trim();
@@ -173,13 +167,13 @@ function getDestination(text) {
         return "https://" + text;
     }
 
-    // Google search
-    return "https://www.google.com/search?q=" +
+    // BRAVE SEARCH — NO GOOGLE
+    return "https://search.brave.com/search?q=" +
            encodeURIComponent(text);
 }
 
 
-// Load destination
+// Open a destination
 function loadSite(url, saveHistory = true) {
 
     if (!url) {
@@ -187,21 +181,17 @@ function loadSite(url, saveHistory = true) {
     }
 
     /*
-       IMPORTANT:
-       Google blocks iframe embedding.
-       Open Google searches in the actual browser tab
-       instead of putting Google inside the iframe.
+       Search engines can block iframe embedding.
+       Open Brave Search in the normal browser tab.
     */
 
-    if (
-        url.startsWith("https://www.google.com/search") ||
-        url.startsWith("https://google.com/search")
-    ) {
+    if (url.startsWith("https://search.brave.com/")) {
 
-        window.top.location.href = url;
+        window.location.href = url;
         return;
     }
 
+    // Normal website
     frame.src = url;
     address.value = url;
 
