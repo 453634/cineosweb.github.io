@@ -37,7 +37,7 @@ html, body {
 }
 
 button {
-    border: 0;
+    border: none;
     background: transparent;
     color: white;
     width: 38px;
@@ -99,10 +99,10 @@ iframe {
 
     <div class="logo">B</div>
 
-    <button onclick="goBack()" title="Back">←</button>
-    <button onclick="goForward()" title="Forward">→</button>
-    <button onclick="reloadPage()" title="Reload">↻</button>
-    <button onclick="goHome()" title="Home">⌂</button>
+    <button onclick="goBack()">←</button>
+    <button onclick="goForward()">→</button>
+    <button onclick="reloadPage()">↻</button>
+    <button onclick="goHome()">⌂</button>
 
     <input
         id="address"
@@ -116,26 +116,19 @@ iframe {
 
 </div>
 
-<iframe
-    id="page"
-    src="https://example.com">
-</iframe>
+<iframe id="page" src="https://example.com"></iframe>
 ```
 
 </div>
 
 <script>
-
 const address = document.getElementById("address");
 const page = document.getElementById("page");
 
 let pages = ["https://example.com"];
 let position = 0;
 
-
-// Detect whether the text is a website
 function isWebsite(text) {
-
     return (
         text.startsWith("http://") ||
         text.startsWith("https://") ||
@@ -147,8 +140,6 @@ function isWebsite(text) {
     );
 }
 
-
-// Go / Search
 function go() {
 
     const text = address.value.trim();
@@ -157,9 +148,12 @@ function go() {
         return;
     }
 
-
-    // SEARCH
-    // Anything that isn't a website goes to Brave Search.
+    /*
+     * SEARCH
+     * If the user types something like "cats",
+     * open Brave Search instead of making
+     * https://cats.
+     */
     if (!isWebsite(text)) {
 
         const searchURL =
@@ -171,8 +165,9 @@ function go() {
         return;
     }
 
-
-    // WEBSITE
+    /*
+     * WEBSITE
+     */
     let url = text;
 
     if (
@@ -190,8 +185,6 @@ function go() {
     position++;
 }
 
-
-// Enter key
 address.addEventListener("keydown", function(event) {
 
     if (event.key === "Enter") {
@@ -200,8 +193,6 @@ address.addEventListener("keydown", function(event) {
 
 });
 
-
-// Back
 function goBack() {
 
     if (position > 0) {
@@ -213,8 +204,6 @@ function goBack() {
     }
 }
 
-
-// Forward
 function goForward() {
 
     if (position < pages.length - 1) {
@@ -226,14 +215,10 @@ function goForward() {
     }
 }
 
-
-// Reload
 function reloadPage() {
     page.src = page.src;
 }
 
-
-// Home
 function goHome() {
 
     pages = ["https://example.com"];
@@ -242,7 +227,6 @@ function goHome() {
     page.src = "https://example.com";
     address.value = "";
 }
-
 </script>
 
 </body>
