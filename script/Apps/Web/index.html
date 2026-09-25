@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -80,11 +79,59 @@ button:hover {
     border-radius: 20px;
 }
 
-#page {
+.page-area {
     flex: 1;
     width: 100%;
+    position: relative;
+    background: white;
+}
+
+#page {
+    width: 100%;
+    height: 100%;
     border: 0;
     background: white;
+    display: block;
+}
+
+.blocked {
+    position: absolute;
+    inset: 0;
+    background: white;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    color: #202124;
+}
+
+.blocked.show {
+    display: flex;
+}
+
+.blocked h2 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+}
+
+.blocked p {
+    margin: 0 0 20px 0;
+    color: #666;
+    max-width: 360px;
+    font-size: 14px;
+}
+
+.blocked a {
+    background: #fb542b;
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
 }
 </style>
 
@@ -94,34 +141,42 @@ button:hover {
 
 <div class="browser">
 
-```
-<div class="toolbar">
+    <div class="toolbar">
 
-    <div class="logo">B</div>
+        <div class="logo">B</div>
 
-    <button id="back" title="Back">←</button>
-    <button id="forward" title="Forward">→</button>
-    <button id="reload" title="Reload">↻</button>
-    <button id="home" title="Home">⌂</button>
+        <button id="back" title="Back">←</button>
+        <button id="forward" title="Forward">→</button>
+        <button id="reload" title="Reload">↻</button>
+        <button id="home" title="Home">⌂</button>
 
-    <input
-        id="address"
-        class="address"
-        type="text"
-        placeholder="Search or enter address"
-        autocomplete="off"
-    >
+        <input
+            id="address"
+            class="address"
+            type="text"
+            placeholder="Search or enter address"
+            autocomplete="off"
+        >
 
-    <button id="goButton" class="go">Go</button>
+        <button id="goButton" class="go">Go</button>
 
-</div>
+    </div>
 
-<iframe
-    id="page"
-    src="https://example.com"
-    title="Web page">
-</iframe>
-```
+    <div class="page-area">
+
+        <iframe
+            id="page"
+            src="https://example.com"
+            title="Web page">
+        </iframe>
+
+        <div id="blocked" class="blocked">
+            <h2>This site refused to connect</h2>
+            <p>Some websites block being shown inside another page (a security setting called X-Frame-Options). You can still open it directly.</p>
+            <a id="openExternal" href="#" target="_blank" rel="noopener">Open in new tab</a>
+        </div>
+
+    </div>
 
 </div>
 
@@ -135,9 +190,14 @@ button:hover {
     const forwardButton = document.getElementById("forward");
     const reloadButton = document.getElementById("reload");
     const homeButton = document.getElementById("home");
+    const blocked = document.getElementById("blocked");
+    const openExternal = document.getElementById("openExternal");
 
     let history = ["https://example.com"];
     let historyIndex = 0;
+
+    let loadTimer = null;
+    let loadedOnce = false;
 
 
     function looksLikeWebsite(text) {
@@ -161,6 +221,70 @@ button:hover {
     }
 
 
+    function hideBlockedScreen() {
+        blocked.classList.remove("show");
+        page.style.visibility = "visible";
+    }
+
+
+    function showBlockedScreen(url) {
+        openExternal.href = url;
+        blocked.classList.add("show");
+        page.style.visibility = "hidden";
+    }
+
+
+    function watchForBlock(url) {
+
+        loadedOnce = false;
+
+        if (loadTimer) {
+            clearTimeout(loadTimer);
+        }
+
+        hideBlockedScreen();
+
+        /*
+         * Iframes don't fire a normal error event when a site
+         * refuses embedding (X-Frame-Options / CSP). Instead we
+         * give it a few seconds: if the iframe's "load" event
+         * hasn't actually fired with real content by then, we
+         * assume the site refused and show the fallback screen.
+         */
+        loadTimer = setTimeout(function () {
+            if (!loadedOnce) {
+                showBlockedScreen(url);
+            }
+        }, 3500);
+    }
+
+
+    page.addEventListener("load", function () {
+
+        loadedOnce = true;
+
+        if (loadTimer) {
+            clearTimeout(loadTimer);
+        }
+
+        /*
+         * A cross-origin iframe that loaded successfully can't be
+         * inspected (browser security), but if we get here without
+         * the timeout firing, treat it as a successful connection.
+         */
+        try {
+            // Accessing contentWindow.location on a same-origin frame
+            // works fine; on cross-origin it throws, which is expected
+            // and still means the page itself DID load in the iframe.
+            void page.contentWindow.location.href;
+        } catch (e) {
+            // Cross-origin load succeeded — this is normal and fine.
+        }
+
+        hideBlockedScreen();
+    });
+
+
     function openWebsite(url, saveHistory) {
 
         if (saveHistory) {
@@ -172,6 +296,8 @@ button:hover {
 
         page.src = url;
         address.value = url;
+
+        watchForBlock(url);
     }
 
 
@@ -259,6 +385,8 @@ button:hover {
 
             page.src = url;
             address.value = url;
+
+            watchForBlock(url);
         }
 
     });
@@ -274,12 +402,15 @@ button:hover {
 
             page.src = url;
             address.value = url;
+
+            watchForBlock(url);
         }
 
     });
 
 
     reloadButton.addEventListener("click", function () {
+        watchForBlock(page.src);
         page.src = page.src;
     });
 
@@ -291,6 +422,8 @@ button:hover {
 
         page.src = "https://example.com";
         address.value = "";
+
+        watchForBlock("https://example.com");
     });
 
 
