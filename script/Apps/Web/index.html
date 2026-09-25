@@ -306,17 +306,18 @@ button:hover {
         /*
          * NO GOOGLE.
          *
-         * Searches use Brave Search.
-         *
-         * Brave Search is opened in a new browser tab
-         * because search engines can refuse iframe embedding.
+         * Searches use Brave Search, loaded inside the browser
+         * app itself so the user stays inside Cine-OS. If Brave
+         * Search ends up refusing to embed, watchForBlock() will
+         * catch it and show the fallback screen (with its own
+         * "open in new tab" link) instead of silently leaving.
          */
 
         const url =
             "https://search.brave.com/search?q=" +
             encodeURIComponent(text);
 
-        window.open(url, "_blank");
+        openWebsite(url, true);
     }
 
 
