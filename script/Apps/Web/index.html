@@ -1,10 +1,9 @@
-```html
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Brave Browser</title>
 
 <style>
@@ -88,34 +87,40 @@ iframe {
     background: white;
 }
 </style>
+
 </head>
 
 <body>
 
 <div class="browser">
 
-    <div class="topbar">
+```
+<div class="topbar">
 
-        <div class="logo">B</div>
+    <div class="logo">B</div>
 
-        <button onclick="goBack()">←</button>
-        <button onclick="goForward()">→</button>
-        <button onclick="reloadPage()">↻</button>
-        <button onclick="goHome()">⌂</button>
+    <button onclick="goBack()" title="Back">←</button>
+    <button onclick="goForward()" title="Forward">→</button>
+    <button onclick="reloadPage()" title="Reload">↻</button>
+    <button onclick="goHome()" title="Home">⌂</button>
 
-        <input
-            id="address"
-            class="address"
-            type="text"
-            placeholder="Search or enter address"
-            autocomplete="off"
-        >
+    <input
+        id="address"
+        class="address"
+        type="text"
+        placeholder="Search or enter address"
+        autocomplete="off"
+    >
 
-        <button class="go" onclick="go()">Go</button>
+    <button class="go" onclick="go()">Go</button>
 
-    </div>
+</div>
 
-    <iframe id="page" src="https://example.com"></iframe>
+<iframe
+    id="page"
+    src="https://example.com">
+</iframe>
+```
 
 </div>
 
@@ -128,7 +133,7 @@ let pages = ["https://example.com"];
 let position = 0;
 
 
-// Check whether something looks like a website
+// Detect whether the text is a website
 function isWebsite(text) {
 
     return (
@@ -143,31 +148,31 @@ function isWebsite(text) {
 }
 
 
-// Go button
+// Go / Search
 function go() {
 
-    let text = address.value.trim();
+    const text = address.value.trim();
 
     if (!text) {
         return;
     }
 
 
-    // If it is NOT a website, search Brave
+    // SEARCH
+    // Anything that isn't a website goes to Brave Search.
     if (!isWebsite(text)) {
 
         const searchURL =
             "https://search.brave.com/search?q=" +
             encodeURIComponent(text);
 
-        // Open search outside the iframe
         window.open(searchURL, "_blank");
 
         return;
     }
 
 
-    // It is a website
+    // WEBSITE
     let url = text;
 
     if (
@@ -177,10 +182,8 @@ function go() {
         url = "https://" + url;
     }
 
-
     page.src = url;
     address.value = url;
-
 
     pages = pages.slice(0, position + 1);
     pages.push(url);
@@ -244,5 +247,3 @@ function goHome() {
 
 </body>
 </html>
-```
-```
