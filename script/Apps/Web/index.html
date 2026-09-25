@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Cine Web Browser</title>
+<title>Brave Browser</title>
 
 <style>
 * {
@@ -98,15 +98,16 @@ iframe {
 
         <div class="logo">B</div>
 
-        <button onclick="back()">←</button>
-        <button onclick="forward()">→</button>
-        <button onclick="reload()">↻</button>
-        <button onclick="home()">⌂</button>
+        <button onclick="goBack()">←</button>
+        <button onclick="goForward()">→</button>
+        <button onclick="reloadPage()">↻</button>
+        <button onclick="goHome()">⌂</button>
 
         <input
             id="address"
             class="address"
-            placeholder="Enter website address"
+            type="text"
+            placeholder="Search or enter address"
             autocomplete="off"
         >
 
@@ -127,14 +128,48 @@ let pages = ["https://example.com"];
 let position = 0;
 
 
-// Open a website
+// Check whether something looks like a website
+function isWebsite(text) {
+
+    return (
+        text.startsWith("http://") ||
+        text.startsWith("https://") ||
+        text.startsWith("www.") ||
+        (
+            text.includes(".") &&
+            !text.includes(" ")
+        )
+    );
+}
+
+
+// Go button
 function go() {
 
-    let url = address.value.trim();
+    let text = address.value.trim();
 
-    if (!url) return;
+    if (!text) {
+        return;
+    }
 
-    // Add https automatically
+
+    // If it is NOT a website, search Brave
+    if (!isWebsite(text)) {
+
+        const searchURL =
+            "https://search.brave.com/search?q=" +
+            encodeURIComponent(text);
+
+        // Open search outside the iframe
+        window.open(searchURL, "_blank");
+
+        return;
+    }
+
+
+    // It is a website
+    let url = text;
+
     if (
         !url.startsWith("http://") &&
         !url.startsWith("https://")
@@ -142,8 +177,10 @@ function go() {
         url = "https://" + url;
     }
 
+
     page.src = url;
     address.value = url;
+
 
     pages = pages.slice(0, position + 1);
     pages.push(url);
@@ -162,7 +199,7 @@ address.addEventListener("keydown", function(event) {
 
 
 // Back
-function back() {
+function goBack() {
 
     if (position > 0) {
 
@@ -175,7 +212,7 @@ function back() {
 
 
 // Forward
-function forward() {
+function goForward() {
 
     if (position < pages.length - 1) {
 
@@ -188,13 +225,13 @@ function forward() {
 
 
 // Reload
-function reload() {
+function reloadPage() {
     page.src = page.src;
 }
 
 
 // Home
-function home() {
+function goHome() {
 
     pages = ["https://example.com"];
     position = 0;
@@ -207,4 +244,5 @@ function home() {
 
 </body>
 </html>
+```
 ```
