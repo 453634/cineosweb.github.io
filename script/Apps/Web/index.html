@@ -4,19 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cine-Web</title>
 
 ```
-<title>Cine-Web</title>
-
 <style>
     * {
         box-sizing: border-box;
     }
 
-    html,
-    body {
+    html, body {
         margin: 0;
-        padding: 0;
         width: 100%;
         height: 100%;
         overflow: hidden;
@@ -33,15 +30,13 @@
 
     #toolbar {
         display: flex;
-        align-items: center;
         gap: 6px;
         padding: 7px;
         background: #202020;
-        border-bottom: 1px solid #333;
     }
 
     button {
-        width: 34px;
+        width: 38px;
         height: 32px;
         border: 0;
         border-radius: 6px;
@@ -55,60 +50,32 @@
         background: #444;
     }
 
-    button:disabled {
-        opacity: 0.4;
-        cursor: default;
-    }
-
     #url {
         flex: 1;
-        height: 32px;
         min-width: 0;
-        padding: 0 12px;
+        height: 32px;
+        padding: 0 10px;
         border: 1px solid #444;
-        border-radius: 7px;
+        border-radius: 6px;
         outline: none;
         background: #111;
         color: white;
-        font-size: 14px;
-    }
-
-    #url:focus {
-        border-color: #666;
     }
 
     #go {
-        width: 48px;
-        font-size: 13px;
+        width: 50px;
     }
 
     #frame-container {
         position: relative;
         flex: 1;
-        min-height: 0;
     }
 
     #ifr {
         width: 100%;
         height: 100%;
         border: 0;
-        display: block;
         background: white;
-    }
-
-    #message {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        display: none;
-        max-width: 90%;
-        padding: 14px 18px;
-        border-radius: 10px;
-        background: rgba(20, 20, 20, 0.95);
-        color: white;
-        text-align: center;
-        z-index: 10;
     }
 </style>
 ```
@@ -121,172 +88,186 @@
 
 ```
 <div id="toolbar">
-
-    <button id="back" title="Back">‹</button>
-
-    <button id="forward" title="Forward">›</button>
-
-    <button id="reload" title="Reload">↻</button>
+    <button id="back">‹</button>
+    <button id="forward">›</button>
+    <button id="reload">↻</button>
 
     <input
         id="url"
         type="text"
-        placeholder="Enter a website..."
+        placeholder="Search or enter website"
         autocomplete="off"
         spellcheck="false"
     >
 
     <button id="go">Go</button>
-
 </div>
 
 <div id="frame-container">
-    
     <iframe
         id="ifr"
-        allowfullscreen
         allow="autoplay; fullscreen; gamepad; microphone; camera"
-        referrerpolicy="no-referrer-when-downgrade"
     ></iframe>
-
-    <div id="message"></div>
-
 </div>
 ```
 
 </div>
 
 <script>
-    const iframe = document.getElementById("ifr");
-    const urlInput = document.getElementById("url");
-    const goButton = document.getElementById("go");
+const iframe = document.getElementById("ifr");
+const urlInput = document.getElementById("url");
 
-    const backButton = document.getElementById("back");
-    const forwardButton = document.getElementById("forward");
-    const reloadButton = document.getElementById("reload");
+const goButton = document.getElementById("go");
+const backButton = document.getElementById("back");
+const forwardButton = document.getElementById("forward");
+const reloadButton = document.getElementById("reload");
 
-    const message = document.getElementById("message");
+let pages = [];
+let currentPage = -1;
 
-    let history = [];
-    let historyIndex = -1;
 
-    function normaliseUrl(value) {
-    value = value.trim();
+/* Convert the user's input into a URL */
+function getUrl(input) {
 
-    if (!value) {
+    input = input.trim();
+
+    if (!input) {
         return null;
     }
 
-    // If it looks like a URL, open it directly.
+    /*
+     * If the user entered a URL,
+     * open that URL.
+     */
     if (
-        /^https?:\/\//i.test(value) ||
-        /^www\./i.test(value) ||
-        /^[\w-]+\.[a-z]{2,}/i.test(value)
+        input.startsWith("http://") ||
+        input.startsWith("https://") ||
+        input.startsWith("www.")
     ) {
-        if (!/^https?:\/\//i.test(value)) {
-            value = "https://" + value;
+        if (input.startsWith("www.")) {
+            input = "https://" + input;
         }
 
-        try {
-            return new URL(value).href;
-        } catch {
-            return null;
-        }
+        return input;
     }
-        
-        
-        return "https://www.bing.com/search?q=" +
-            encodeURIComponent(value);
+
+    /*
+     * If it looks like a domain,
+     * open it directly.
+     */
+    if (
+        input.includes(".") &&
+        !input.includes(" ")
+    ) {
+        return "https://" + input;
+    }
+
+    /*
+     * Otherwise perform a search.
+     */
+    return "https://www.google.com/search?q=" +
+        encodeURIComponent(input);
 }
-        value = value.trim();
 
-        if (!value) {
-            return null;
-        }
 
-        // Allow normal URLs.
-        if (!/^https?:\/\//i.test(value)) {
-            value = "https://" + value;
-        }
+/* Open a page */
+function openPage(input, saveHistory = true) {
 
-        try {
-            return new URL(value).href;
-        } catch {
-            return null;
-        }
+    const url = getUrl(input);
+
+    if (!url) {
+        return;
     }
 
-    function showMessage(text) {
-        message.textContent = text;
-        message.style.display = "block";
+    iframe.src = url;
+    urlInput.value = input;
+
+    if (saveHistory) {
+
+        pages = pages.slice(0, currentPage + 1);
+
+        pages.push({
+            input: input,
+            url: url
+        });
+
+        currentPage = pages.length - 1;
     }
 
-    function hideMessage() {
-        message.style.display = "none";
+    updateButtons();
+}
+
+
+/* Go button */
+goButton.onclick = function () {
+    openPage(urlInput.value);
+};
+
+
+/* Press Enter */
+urlInput.addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter") {
+        event.preventDefault();
+        openPage(urlInput.value);
     }
 
-    function updateButtons() {
-        backButton.disabled = historyIndex <= 0;
-        forwardButton.disabled =
-            historyIndex >= history.length - 1;
-    }
+});
 
-    function loadUrl(value, addHistory = true) {
-        const url = normaliseUrl(value);
 
-        if (!url) {
-            showMessage("Please enter a valid website address.");
-            return;
-        }
+/* Back */
+backButton.onclick = function () {
 
-        hideMessage();
+    if (currentPage > 0) {
 
-        iframe.src = url;
-        urlInput.value = url;
+        currentPage--;
 
-        if (addHistory) {
-            history = history.slice(0, historyIndex + 1);
-            history.push(url);
-            historyIndex = history.length - 1;
-        }
+        iframe.src = pages[currentPage].url;
+        urlInput.value = pages[currentPage].input;
 
         updateButtons();
     }
 
-    goButton.addEventListener("click", () => {
-        loadUrl(urlInput.value);
-    });
+};
 
-    urlInput.addEventListener("keydown", event => {
-        if (event.key === "Enter") {
-            loadUrl(urlInput.value);
-        }
-    });
 
-    backButton.addEventListener("click", () => {
-        if (historyIndex > 0) {
-            historyIndex--;
-            loadUrl(history[historyIndex], false);
-        }
-    });
+/* Forward */
+forwardButton.onclick = function () {
 
-    forwardButton.addEventListener("click", () => {
-        if (historyIndex < history.length - 1) {
-            historyIndex++;
-            loadUrl(history[historyIndex], false);
-        }
-    });
+    if (currentPage < pages.length - 1) {
 
-    reloadButton.addEventListener("click", () => {
-        iframe.src = iframe.src;
-    });
+        currentPage++;
 
-    iframe.addEventListener("load", () => {
-        hideMessage();
-    });
+        iframe.src = pages[currentPage].url;
+        urlInput.value = pages[currentPage].input;
 
-    // Starting page.
-    loadUrl("https://example.com");
+        updateButtons();
+    }
+
+};
+
+
+/* Reload */
+reloadButton.onclick = function () {
+
+    iframe.src = iframe.src;
+
+};
+
+
+/* Enable/disable navigation buttons */
+function updateButtons() {
+
+    backButton.disabled = currentPage <= 0;
+
+    forwardButton.disabled =
+        currentPage >= pages.length - 1;
+}
+
+
+/* Starting page */
+openPage("https://example.com");
+
 </script>
 
 </body>
