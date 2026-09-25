@@ -1,31 +1,265 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iframe Page</title>
-    <style>
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
-        iframe { width: 100%; height: 100%; border: none; display: none; }
-        #ntf {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(20,20,20,0.9); color: #fff; padding: 10px 18px;
-            border-radius: 12px; border: 1px solid #333; z-index: 99;
-            display: none; align-items: center; gap: 12px; backdrop-filter: blur(5px);
-        }
-        #ntf b { color: #2ecc71; }
-        #btn { background: #333; border: none; color: #fff; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; }
-        #ld { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #444; background: #000; }
-    </style>
-</head>
-<body>
-    <div id="ld">Initialising...</div>
-    <iframe id="ifr" allowfullscreen allow="autoplay; fullscreen; gamepad; microphone; camera"></iframe>
 
-    <script>
-        document.getElementById('ifr').src = "https://www.google.com";
-        document.getElementById('ifr').style.display = 'block';
-        document.getElementById('ld').style.display = 'none';
-    </script>
+```
+<title>Cine-Web</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #111;
+        font-family: Arial, sans-serif;
+    }
+
+    #browser {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+    }
+
+    #toolbar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px;
+        background: #202020;
+        border-bottom: 1px solid #333;
+    }
+
+    button {
+        width: 34px;
+        height: 32px;
+        border: 0;
+        border-radius: 6px;
+        background: #333;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button:hover {
+        background: #444;
+    }
+
+    button:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    #url {
+        flex: 1;
+        height: 32px;
+        min-width: 0;
+        padding: 0 12px;
+        border: 1px solid #444;
+        border-radius: 7px;
+        outline: none;
+        background: #111;
+        color: white;
+        font-size: 14px;
+    }
+
+    #url:focus {
+        border-color: #666;
+    }
+
+    #go {
+        width: 48px;
+        font-size: 13px;
+    }
+
+    #frame-container {
+        position: relative;
+        flex: 1;
+        min-height: 0;
+    }
+
+    #ifr {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+        background: white;
+    }
+
+    #message {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: none;
+        max-width: 90%;
+        padding: 14px 18px;
+        border-radius: 10px;
+        background: rgba(20, 20, 20, 0.95);
+        color: white;
+        text-align: center;
+        z-index: 10;
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<div id="browser">
+
+```
+<div id="toolbar">
+
+    <button id="back" title="Back">‹</button>
+
+    <button id="forward" title="Forward">›</button>
+
+    <button id="reload" title="Reload">↻</button>
+
+    <input
+        id="url"
+        type="text"
+        placeholder="Enter a website..."
+        autocomplete="off"
+        spellcheck="false"
+    >
+
+    <button id="go">Go</button>
+
+</div>
+
+<div id="frame-container">
+
+    <iframe
+        id="ifr"
+        allowfullscreen
+        allow="autoplay; fullscreen; gamepad; microphone; camera"
+    ></iframe>
+
+    <div id="message"></div>
+
+</div>
+```
+
+</div>
+
+<script>
+    const iframe = document.getElementById("ifr");
+    const urlInput = document.getElementById("url");
+    const goButton = document.getElementById("go");
+
+    const backButton = document.getElementById("back");
+    const forwardButton = document.getElementById("forward");
+    const reloadButton = document.getElementById("reload");
+
+    const message = document.getElementById("message");
+
+    let history = [];
+    let historyIndex = -1;
+
+    function normaliseUrl(value) {
+        value = value.trim();
+
+        if (!value) {
+            return null;
+        }
+
+        // Allow normal URLs.
+        if (!/^https?:\/\//i.test(value)) {
+            value = "https://" + value;
+        }
+
+        try {
+            return new URL(value).href;
+        } catch {
+            return null;
+        }
+    }
+
+    function showMessage(text) {
+        message.textContent = text;
+        message.style.display = "block";
+    }
+
+    function hideMessage() {
+        message.style.display = "none";
+    }
+
+    function updateButtons() {
+        backButton.disabled = historyIndex <= 0;
+        forwardButton.disabled =
+            historyIndex >= history.length - 1;
+    }
+
+    function loadUrl(value, addHistory = true) {
+        const url = normaliseUrl(value);
+
+        if (!url) {
+            showMessage("Please enter a valid website address.");
+            return;
+        }
+
+        hideMessage();
+
+        iframe.src = url;
+        urlInput.value = url;
+
+        if (addHistory) {
+            history = history.slice(0, historyIndex + 1);
+            history.push(url);
+            historyIndex = history.length - 1;
+        }
+
+        updateButtons();
+    }
+
+    goButton.addEventListener("click", () => {
+        loadUrl(urlInput.value);
+    });
+
+    urlInput.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+            loadUrl(urlInput.value);
+        }
+    });
+
+    backButton.addEventListener("click", () => {
+        if (historyIndex > 0) {
+            historyIndex--;
+            loadUrl(history[historyIndex], false);
+        }
+    });
+
+    forwardButton.addEventListener("click", () => {
+        if (historyIndex < history.length - 1) {
+            historyIndex++;
+            loadUrl(history[historyIndex], false);
+        }
+    });
+
+    reloadButton.addEventListener("click", () => {
+        iframe.src = iframe.src;
+    });
+
+    iframe.addEventListener("load", () => {
+        hideMessage();
+    });
+
+    // Starting page.
+    loadUrl("https://example.com");
+</script>
+
 </body>
 </html>
