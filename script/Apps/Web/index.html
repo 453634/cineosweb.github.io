@@ -171,6 +171,33 @@
     let historyIndex = -1;
 
     function normaliseUrl(value) {
+    value = value.trim();
+
+    if (!value) {
+        return null;
+    }
+
+    // If it looks like a URL, open it directly.
+    if (
+        /^https?:\/\//i.test(value) ||
+        /^www\./i.test(value) ||
+        /^[\w-]+\.[a-z]{2,}/i.test(value)
+    ) {
+        if (!/^https?:\/\//i.test(value)) {
+            value = "https://" + value;
+        }
+
+        try {
+            return new URL(value).href;
+        } catch {
+            return null;
+        }
+    }
+
+    // Otherwise, search the web.
+    return "https://www.google.com/search?q=" +
+        encodeURIComponent(value);
+}
         value = value.trim();
 
         if (!value) {
