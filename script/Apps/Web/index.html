@@ -135,6 +135,8 @@ button:hover {
 }
 </style>
 
+<script type="module" src="https://unpkg.com/x-frame-bypass"></script>
+
 </head>
 
 <body>
@@ -166,14 +168,15 @@ button:hover {
 
         <iframe
             id="page"
+            is="x-frame-bypass"
             src="https://example.com"
             title="Web page"
             sandbox="allow-scripts allow-same-origin allow-forms">
         </iframe>
 
         <div id="blocked" class="blocked">
-            <h2>This site refused to connect</h2>
-            <p>Some websites block being shown inside another page (a security setting called X-Frame-Options).</p>
+            <h2>This page couldn't load</h2>
+            <p>The site may be down, blocking the proxy, or too heavy on client-side scripts to load this way.</p>
         </div>
 
     </div>
@@ -242,7 +245,7 @@ button:hover {
             if (!loadedOnce) {
                 showBlockedScreen();
             }
-        }, 3500);
+        }, 6000);
     }
 
 
@@ -283,15 +286,13 @@ button:hover {
     function search(text) {
 
         /*
-         * Using Bing. Note: Bing (and Google) may block iframe
-         * embedding via X-Frame-Options, same as Brave did. If
-         * this hits the "refused to connect" screen, switch back
-         * to DuckDuckGo's HTML endpoint, which is confirmed to
-         * allow embedding: https://html.duckduckgo.com/html/?q=
+         * Brave Search, loaded through the x-frame-bypass proxy
+         * on the iframe above so it can load despite normally
+         * blocking embedding.
          */
 
         const url =
-            "https://www.bing.com/search?q=" +
+            "https://search.brave.com/search?q=" +
             encodeURIComponent(text);
 
         openWebsite(url, true);
