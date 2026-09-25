@@ -167,13 +167,13 @@ button:hover {
         <iframe
             id="page"
             src="https://example.com"
-            title="Web page">
+            title="Web page"
+            sandbox="allow-scripts allow-same-origin allow-forms">
         </iframe>
 
         <div id="blocked" class="blocked">
             <h2>This site refused to connect</h2>
-            <p>Some websites block being shown inside another page (a security setting called X-Frame-Options). You can still open it directly.</p>
-            <a id="openExternal" href="#" target="_blank" rel="noopener">Open in new tab</a>
+            <p>Some websites block being shown inside another page (a security setting called X-Frame-Options).</p>
         </div>
 
     </div>
@@ -191,7 +191,6 @@ button:hover {
     const reloadButton = document.getElementById("reload");
     const homeButton = document.getElementById("home");
     const blocked = document.getElementById("blocked");
-    const openExternal = document.getElementById("openExternal");
 
     let history = ["https://example.com"];
     let historyIndex = 0;
@@ -227,8 +226,7 @@ button:hover {
     }
 
 
-    function showBlockedScreen(url) {
-        openExternal.href = url;
+    function showBlockedScreen() {
         blocked.classList.add("show");
         page.style.visibility = "hidden";
     }
@@ -253,7 +251,7 @@ button:hover {
          */
         loadTimer = setTimeout(function () {
             if (!loadedOnce) {
-                showBlockedScreen(url);
+                showBlockedScreen();
             }
         }, 3500);
     }
