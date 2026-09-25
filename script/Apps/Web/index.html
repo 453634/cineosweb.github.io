@@ -282,8 +282,16 @@ button:hover {
 
     function search(text) {
 
+        /*
+         * Using Bing. Note: Bing (and Google) may block iframe
+         * embedding via X-Frame-Options, same as Brave did. If
+         * this hits the "refused to connect" screen, switch back
+         * to DuckDuckGo's HTML endpoint, which is confirmed to
+         * allow embedding: https://html.duckduckgo.com/html/?q=
+         */
+
         const url =
-            "https://html.duckduckgo.com/html/?q=" +
+            "https://www.bing.com/search?q=" +
             encodeURIComponent(text);
 
         openWebsite(url, true);
