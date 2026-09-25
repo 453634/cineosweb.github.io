@@ -205,10 +205,6 @@ button:hover {
         if (text.startsWith("https://")) return true;
         if (text.startsWith("www.")) return true;
 
-        /*
-         * A domain such as wikipedia.org is a website.
-         * Words such as cats are NOT websites.
-         */
         if (
             text.includes(".") &&
             !text.includes(" ")
@@ -242,13 +238,6 @@ button:hover {
 
         hideBlockedScreen();
 
-        /*
-         * Iframes don't fire a normal error event when a site
-         * refuses embedding (X-Frame-Options / CSP). Instead we
-         * give it a few seconds: if the iframe's "load" event
-         * hasn't actually fired with real content by then, we
-         * assume the site refused and show the fallback screen.
-         */
         loadTimer = setTimeout(function () {
             if (!loadedOnce) {
                 showBlockedScreen();
@@ -265,15 +254,7 @@ button:hover {
             clearTimeout(loadTimer);
         }
 
-        /*
-         * A cross-origin iframe that loaded successfully can't be
-         * inspected (browser security), but if we get here without
-         * the timeout firing, treat it as a successful connection.
-         */
         try {
-            // Accessing contentWindow.location on a same-origin frame
-            // works fine; on cross-origin it throws, which is expected
-            // and still means the page itself DID load in the iframe.
             void page.contentWindow.location.href;
         } catch (e) {
             // Cross-origin load succeeded — this is normal and fine.
@@ -301,16 +282,6 @@ button:hover {
 
     function search(text) {
 
-        /*
-         * Brave Search blocks iframe embedding (X-Frame-Options),
-         * like most search engines, so it can never load inside
-         * Cine-OS no matter what we do here.
-         *
-         * DuckDuckGo's HTML endpoint does not block embedding, so
-         * we use that instead to keep search results inside the
-         * browser app.
-         */
-
         const url =
             "https://html.duckduckgo.com/html/?q=" +
             encodeURIComponent(text);
@@ -327,26 +298,10 @@ button:hover {
             return;
         }
 
-
-        /*
-         * If it is a normal word or phrase:
-         *
-         * cats
-         * funny cats
-         * minecraft
-         *
-         * -> Brave Search
-         */
-
         if (!looksLikeWebsite(text)) {
             search(text);
             return;
         }
-
-
-        /*
-         * Otherwise it is a website.
-         */
 
         let url = text;
 
