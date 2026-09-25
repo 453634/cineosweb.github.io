@@ -7,128 +7,97 @@
 <title>Brave Browser</title>
 
 <style>
-    * {
-        box-sizing: border-box;
-    }
+* {
+    box-sizing: border-box;
+}
 
-    html, body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        font-family: Arial, sans-serif;
-        background: #202124;
-    }
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    background: #202124;
+}
 
-    .browser {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
+.browser {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
 
-    .topbar {
-        height: 58px;
-        background: #252525;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px;
-        color: white;
-    }
+.topbar {
+    height: 58px;
+    background: #252525;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    color: white;
+}
 
-    button {
-        border: none;
-        background: transparent;
-        color: white;
-        font-size: 19px;
-        width: 38px;
-        height: 38px;
-        border-radius: 8px;
-        cursor: pointer;
-    }
+button {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 19px;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
-    button:hover {
-        background: #3a3a3a;
-    }
+button:hover {
+    background: #3a3a3a;
+}
 
-    .brave-logo {
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        background: #fb542b;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: white;
-        font-size: 15px;
-    }
+.brave-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #fb542b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 15px;
+}
 
-    .address {
-        flex: 1;
-        height: 40px;
-        border-radius: 22px;
-        border: 1px solid #444;
-        outline: none;
-        padding: 0 16px;
-        background: #333;
-        color: white;
-        font-size: 15px;
-    }
+.address {
+    flex: 1;
+    height: 40px;
+    border-radius: 22px;
+    border: 1px solid #444;
+    outline: none;
+    padding: 0 16px;
+    background: #333;
+    color: white;
+    font-size: 15px;
+}
 
-    .address:focus {
-        border-color: #777;
-    }
+.address:focus {
+    border-color: #777;
+}
 
-    .go {
-        background: #fb542b;
-        border-radius: 20px;
-        width: 48px;
-        font-size: 16px;
-    }
+.go {
+    background: #fb542b;
+    border-radius: 20px;
+    width: 48px;
+    font-size: 16px;
+}
 
-    .go:hover {
-        background: #e94720;
-    }
+.go:hover {
+    background: #e94720;
+}
 
-    iframe {
-        flex: 1;
-        width: 100%;
-        border: none;
-        background: white;
-    }
-
-    .home {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        background: #202124;
-    }
-
-    .home-logo {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: #fb542b;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 45px;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
-
-    .home h1 {
-        margin: 0 0 8px;
-    }
-
-    .home p {
-        color: #aaa;
-    }
+iframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: white;
+}
 </style>
 </head>
 
@@ -166,6 +135,7 @@
 </div>
 
 <script>
+
 const address = document.getElementById("address");
 const frame = document.getElementById("browserFrame");
 
@@ -173,7 +143,7 @@ let historyList = ["https://example.com"];
 let historyIndex = 0;
 
 
-// Decide whether the user entered a URL or a search
+// Turn text into a URL or Google search
 function getDestination(text) {
 
     text = text.trim();
@@ -183,7 +153,10 @@ function getDestination(text) {
     }
 
     // Full URL
-    if (text.startsWith("http://") || text.startsWith("https://")) {
+    if (
+        text.startsWith("http://") ||
+        text.startsWith("https://")
+    ) {
         return text;
     }
 
@@ -200,24 +173,32 @@ function getDestination(text) {
         return "https://" + text;
     }
 
-    // Search
+    // Google search
     return "https://www.google.com/search?q=" +
            encodeURIComponent(text);
 }
 
 
-// Load a website
+// Load destination
 function loadSite(url, saveHistory = true) {
 
-    if (!url) return;
+    if (!url) {
+        return;
+    }
 
-    // Google searches cannot reliably be displayed inside
-    // the iframe, so open them in a normal browser tab.
+    /*
+       IMPORTANT:
+       Google blocks iframe embedding.
+       Open Google searches in the actual browser tab
+       instead of putting Google inside the iframe.
+    */
+
     if (
         url.startsWith("https://www.google.com/search") ||
         url.startsWith("https://google.com/search")
     ) {
-        window.open(url, "_blank");
+
+        window.top.location.href = url;
         return;
     }
 
@@ -236,18 +217,19 @@ function loadSite(url, saveHistory = true) {
 
 
 // Go button
-document.getElementById("goButton").onclick = function () {
+document.getElementById("goButton").onclick = function() {
 
-    const text = address.value;
-    const destination = getDestination(text);
+    const destination =
+        getDestination(address.value);
 
     if (destination) {
         loadSite(destination);
     }
+
 };
 
 
-// Press Enter
+// Enter key
 address.addEventListener("keydown", function(event) {
 
     if (event.key === "Enter") {
@@ -258,6 +240,7 @@ address.addEventListener("keydown", function(event) {
         if (destination) {
             loadSite(destination);
         }
+
     }
 
 });
@@ -276,6 +259,7 @@ function goBack() {
         frame.src = url;
         address.value = url;
     }
+
 }
 
 
@@ -292,6 +276,7 @@ function goForward() {
         frame.src = url;
         address.value = url;
     }
+
 }
 
 
@@ -304,12 +289,13 @@ function reloadPage() {
 // Home
 function goHome() {
 
-    historyIndex = 0;
     historyList = ["https://example.com"];
+    historyIndex = 0;
 
     frame.src = "https://example.com";
     address.value = "";
 }
+
 </script>
 
 </body>
