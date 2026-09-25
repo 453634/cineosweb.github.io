@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Brave Browser</title>
+<title>Cine Web Browser</title>
 
 <style>
 * {
@@ -38,12 +38,12 @@ html, body {
 }
 
 button {
-    border: none;
+    border: 0;
     background: transparent;
     color: white;
-    font-size: 19px;
     width: 38px;
     height: 38px;
+    font-size: 19px;
     border-radius: 8px;
     cursor: pointer;
 }
@@ -52,17 +52,16 @@ button:hover {
     background: #3a3a3a;
 }
 
-.brave-logo {
+.logo {
     width: 34px;
     height: 34px;
     border-radius: 50%;
     background: #fb542b;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    color: white;
-    font-size: 15px;
 }
 
 .address {
@@ -70,21 +69,16 @@ button:hover {
     height: 40px;
     border-radius: 22px;
     border: 1px solid #444;
-    outline: none;
-    padding: 0 16px;
     background: #333;
     color: white;
+    outline: none;
+    padding: 0 16px;
     font-size: 15px;
-}
-
-.address:focus {
-    border-color: #777;
 }
 
 .go {
     background: #fb542b;
     border-radius: 20px;
-    width: 48px;
 }
 
 iframe {
@@ -102,187 +96,110 @@ iframe {
 
     <div class="topbar">
 
-        <div class="brave-logo">B</div>
+        <div class="logo">B</div>
 
-        <button onclick="goBack()">←</button>
-        <button onclick="goForward()">→</button>
-        <button onclick="reloadPage()">↻</button>
-        <button onclick="goHome()">⌂</button>
+        <button onclick="back()">←</button>
+        <button onclick="forward()">→</button>
+        <button onclick="reload()">↻</button>
+        <button onclick="home()">⌂</button>
 
         <input
             id="address"
             class="address"
-            type="text"
-            placeholder="Search or enter address"
+            placeholder="Enter website address"
             autocomplete="off"
         >
 
-        <button class="go" id="goButton">Go</button>
+        <button class="go" onclick="go()">Go</button>
 
     </div>
 
-    <iframe
-        id="browserFrame"
-        src="https://example.com">
-    </iframe>
+    <iframe id="page" src="https://example.com"></iframe>
 
 </div>
 
 <script>
 
 const address = document.getElementById("address");
-const frame = document.getElementById("browserFrame");
+const page = document.getElementById("page");
 
-let historyList = ["https://example.com"];
-let historyIndex = 0;
+let pages = ["https://example.com"];
+let position = 0;
 
 
-// Convert what the user typed into a destination
-function getDestination(text) {
+// Open a website
+function go() {
 
-    text = text.trim();
+    let url = address.value.trim();
 
-    if (!text) {
-        return null;
-    }
+    if (!url) return;
 
-    // Full URL
+    // Add https automatically
     if (
-        text.startsWith("http://") ||
-        text.startsWith("https://")
+        !url.startsWith("http://") &&
+        !url.startsWith("https://")
     ) {
-        return text;
+        url = "https://" + url;
     }
 
-    // www.example.com
-    if (text.startsWith("www.")) {
-        return "https://" + text;
-    }
-
-    // example.com
-    if (
-        text.includes(".") &&
-        !text.includes(" ")
-    ) {
-        return "https://" + text;
-    }
-
-    // BRAVE SEARCH — NO GOOGLE
-    return "https://search.brave.com/search?q=" +
-           encodeURIComponent(text);
-}
-
-
-// Open a destination
-function loadSite(url, saveHistory = true) {
-
-    if (!url) {
-        return;
-    }
-
-    /*
-       Search engines can block iframe embedding.
-       Open Brave Search in the normal browser tab.
-    */
-
-    if (url.startsWith("https://search.brave.com/")) {
-
-        window.location.href = url;
-        return;
-    }
-
-    // Normal website
-    frame.src = url;
+    page.src = url;
     address.value = url;
 
-    if (saveHistory) {
-
-        historyList =
-            historyList.slice(0, historyIndex + 1);
-
-        historyList.push(url);
-        historyIndex++;
-    }
+    pages = pages.slice(0, position + 1);
+    pages.push(url);
+    position++;
 }
-
-
-// Go button
-document.getElementById("goButton").onclick = function() {
-
-    const destination =
-        getDestination(address.value);
-
-    if (destination) {
-        loadSite(destination);
-    }
-
-};
 
 
 // Enter key
 address.addEventListener("keydown", function(event) {
 
     if (event.key === "Enter") {
-
-        const destination =
-            getDestination(address.value);
-
-        if (destination) {
-            loadSite(destination);
-        }
-
+        go();
     }
 
 });
 
 
 // Back
-function goBack() {
+function back() {
 
-    if (historyIndex > 0) {
+    if (position > 0) {
 
-        historyIndex--;
+        position--;
 
-        const url =
-            historyList[historyIndex];
-
-        frame.src = url;
-        address.value = url;
+        page.src = pages[position];
+        address.value = pages[position];
     }
-
 }
 
 
 // Forward
-function goForward() {
+function forward() {
 
-    if (historyIndex < historyList.length - 1) {
+    if (position < pages.length - 1) {
 
-        historyIndex++;
+        position++;
 
-        const url =
-            historyList[historyIndex];
-
-        frame.src = url;
-        address.value = url;
+        page.src = pages[position];
+        address.value = pages[position];
     }
-
 }
 
 
 // Reload
-function reloadPage() {
-    frame.src = frame.src;
+function reload() {
+    page.src = page.src;
 }
 
 
 // Home
-function goHome() {
+function home() {
 
-    historyList = ["https://example.com"];
-    historyIndex = 0;
+    pages = ["https://example.com"];
+    position = 0;
 
-    frame.src = "https://example.com";
+    page.src = "https://example.com";
     address.value = "";
 }
 
